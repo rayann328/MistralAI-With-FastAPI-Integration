@@ -1,0 +1,31 @@
+from fastapi import FastAPI
+from pydantic import BaseModel
+import requests
+
+app = FastAPI()
+
+URL = "https://api.mistral.ai/v1/chat/completions"
+
+class mistralrequest(BaseModel):
+    api_key:str
+    askMistralAI: str
+    
+
+@app.post("/chat")
+def mistral(request: mistralrequest): 
+    data = {
+        "model": "mistral-small",
+        "messages": [
+            {"role": "system", "content": "You are a friendly cultural assistant."},
+            {"role": "user", "content": request.askMistralAI}
+        ]
+    }
+    headers = {
+        "Authorization": f"Bearer {request.api_key}",
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(URL, headers=headers, json=data)
+    output = response.json()
+    reply = output["choices"][0]["message"]["content"]
+    return {"response": reply}
